@@ -28,6 +28,25 @@ class User < ApplicationRecord
     end
     
     def feed_microposts
-        Micropost.where(self_id: self.following_ids + [self.id])
+        Micropost.where(user_id: self.following_ids + [self.id])
+    end
+    
+    #お気に入り機能
+    has_many :favorites
+    has_many :favorite_microposts, through: :favorites, source: :micropost
+    
+    def add_favorite(micropost)
+        self.favorites.find_or_create_by(micropost_id: micropost.id)
+    end
+    
+    def remove_favorite(micropost)
+        favorite = self.favorites.find_by(micropost_id: micropost.id)
+        favorite.destroy if favorite
+    end
+    
+    def favorite?(micropost)
+        self.favorite_microposts.include?(micropost)
     end
 end
+# User.first.favorite_microposts.include?(Micropost.last)
+#self.favorites.pluck(:micropost_id).include?(Micropost.last.id)
